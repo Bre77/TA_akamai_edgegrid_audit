@@ -1,0 +1,8 @@
+[]
+access = read : [ * ], write : [ sc_admin, admin, power ]
+
+[eventtypes]
+export = system
+
+[props]
+export = system
