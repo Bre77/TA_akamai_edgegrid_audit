@@ -1,2 +1,3 @@
 lib/splunklib
 lib/splunk_sdk*
+TA_akamai_edgegrid_audit.spl
