@@ -110,7 +110,7 @@ class Input(Script):
                     )
                     return
                 auth[item] = stored_password[0].content.clear_password
-            else:
+            elif input_items[item]:
                 if stored_password:
                     ew.log(EventWriter.DEBUG, "Removing Current password")
                     self.service.storage_passwords.delete(username=item, realm=name)
