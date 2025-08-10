@@ -135,7 +135,7 @@ class Input(Script):
         # Web Session
         with requests.Session() as session:
             session.auth = EdgeGridAuth(**auth)
-            if input_items.get("proxy", "").startswith("http"):
+            if input_items.get("proxy", "no").startswith("http"):
                 session.proxies.update({"https": input_items["proxy"]})
             beforeEventId = None
             more = True
