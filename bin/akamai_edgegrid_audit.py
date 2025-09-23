@@ -102,7 +102,7 @@ class Input(Script):
                 for x in self.service.storage_passwords
                 if x.username == item and x.realm == name
             ]
-            if input_items[item] == self.MASK:
+            if input_items.get(item) == self.MASK:
                 if len(stored_password) != 1:
                     ew.log(
                         EventWriter.ERROR,
@@ -110,7 +110,7 @@ class Input(Script):
                     )
                     return
                 auth[item] = stored_password[0].content.clear_password
-            elif input_items[item]:
+            elif input_items.get(item):
                 if stored_password:
                     ew.log(EventWriter.DEBUG, "Removing Current password")
                     self.service.storage_passwords.delete(username=item, realm=name)
