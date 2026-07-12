@@ -6,6 +6,8 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 - `lib/requirements.txt` must list every third-party import actually reached at runtime, not just `splunk-sdk`. `bin/akamai_edgegrid_audit.py` imports `requests` and `dateutil` directly, and `lib/akamai/__init__.py` imports `pkg_resources` (via the legacy `pkg_resources.declare_namespace` namespace-package pattern) at import time. These worked historically only because Splunk's bundled Python happened to provide them.
 - `setuptools` is pinned `<81` because 82+ dropped the `pkg_resources` module entirely, which `lib/akamai/__init__.py` needs. If that vendored namespace-package shim is ever removed, this pin can go too.
 - `splunk-sdk` is capped `>=2.1.1,<3` since 3.0.0 requires Python 3.13 and cannot run on 3.9; Splunk add-ons need to support both during the 3.9->3.13 transition.
+- `.build.sh` strips `__pycache__` with `find lib -type d -name __pycache__ -prune -exec rm -rf {} +` (depth-agnostic) rather than fixed-depth globs, because vendored packages (e.g. `setuptools`'s bundled `_vendor` tree) nest `__pycache__` dirs deeper than any fixed glob reaches, and AppInspect fails the package on leftover compiled `.pyc` files.
+- `.github/workflows/validate.yml` runs `.build.sh` + AppInspect on every push/PR via `Bre77/splunk_nats`'s reusable workflow; keep it green before any Splunkbase republish.
 
 ## Maintaining this file
 
