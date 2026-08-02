@@ -7,7 +7,8 @@ import requests
 from datetime import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
-from splunklib.modularinput import *
+from splunk_input_runtime.modularinput import Argument, Event, EventWriter, Scheme, Script
+from splunk_input_runtime.credentials import SecretField
 from akamai.edgegrid import EdgeGridAuth
 
 
@@ -82,7 +83,6 @@ class Input(Script):
 
     def stream_events(self, inputs, ew):
         # Get Variables
-        self.service.namespace["app"] = self.APP
         input_name, input_items = inputs.inputs.popitem()
         kind, name = input_name.split("://")
         checkpointfile = os.path.join(
@@ -93,33 +93,18 @@ class Input(Script):
         history = int(input_items["history"]) * 86400
 
         # Password Encryption
-        auth = {}
-        updates = {}
-
-        for item in ["client_token", "client_secret", "access_token", "proxy"]:
-            stored_password = [
-                x
-                for x in self.service.storage_passwords
-                if x.username == item and x.realm == name
-            ]
-            if input_items.get(item) == self.MASK:
-                if len(stored_password) != 1:
-                    ew.log(
-                        EventWriter.ERROR,
-                        f"Encrypted {item} was not found for {input_name}, reconfigure its value.",
-                    )
-                    return
-                auth[item] = stored_password[0].content.clear_password
-            elif input_items.get(item):
-                if stored_password:
-                    ew.log(EventWriter.DEBUG, "Removing Current password")
-                    self.service.storage_passwords.delete(username=item, realm=name)
-                ew.log(EventWriter.DEBUG, "Storing password and updating Input")
-                self.service.storage_passwords.create(input_items[item], item, name)
-                updates[item] = self.MASK
-                auth[item] = input_items[item]
-        if updates:
-            self.service.inputs.__getitem__((name, kind)).update(**updates)
+        auth = self.context.credentials.protect_input_fields(
+            kind=kind,
+            stanza=name,
+            values=input_items,
+            fields=(
+                "client_token",
+                "client_secret",
+                "access_token",
+                SecretField("proxy", optional=True),
+            ),
+            placeholder=self.MASK,
+        )
 
         # Checkpoint
         try:
@@ -197,7 +182,6 @@ class Input(Script):
                         EventWriter.ERROR,
                         f"Request returned status {response.status_code}, {response.text}",
                     )
-        ew.close()
 
 
 if __name__ == "__main__":
