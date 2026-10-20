@@ -4,3 +4,4 @@ splunk_input_runtime @ https://github.com/Bre77/splunk-input-runtime/archive/fcc
 requests
 python-dateutil
 setuptools<81
+certifi>=2026.10.19
